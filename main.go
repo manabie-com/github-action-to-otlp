@@ -39,15 +39,15 @@ func getSteps(ctx context.Context, conf actionConfig) error {
 	client := github.NewClient(nil)
 
 	// login using the GITHUB_TOKEN coming from the jobs
-		// as per https://docs.github.com/en/actions/security-guides/automatic-token-authentication
-		githubToken, ok := os.LookupEnv("GITHUB_TOKEN")
-		if ok {
-			ts := oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: githubToken},
-			)
-			tc := oauth2.NewClient(ctx, ts)
-			client = github.NewClient(tc)
-		}
+	// as per https://docs.github.com/en/actions/security-guides/automatic-token-authentication
+	githubToken, ok := os.LookupEnv("GITHUB_TOKEN")
+	if ok {
+		ts := oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: githubToken},
+		)
+		tc := oauth2.NewClient(ctx, ts)
+		client = github.NewClient(tc)
+	}
 
 	id, err := strconv.ParseInt(conf.runID, 10, 64)
 	if err != nil {
@@ -178,6 +178,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Println(conf)
 	pipelineShutdown, err := pipelines.NewTracePipeline(conf.pipelineConfig)
 	defer pipelineShutdown()
 
