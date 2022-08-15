@@ -50,11 +50,13 @@ func getSteps(ctx context.Context, conf actionConfig) error {
 	}
 
 	id, err := strconv.ParseInt(conf.runID, 10, 64)
+	log.Printf("Github Workrun Id: %d", id)
 	if err != nil {
 		return err
 	}
 	workflow, _, err := client.Actions.GetWorkflowRunByID(ctx, conf.owner, conf.repo, id)
 	if err != nil {
+		log.Printf("Cannot get workflow run id %d: %v", id, err)
 		return err
 	}
 
@@ -63,6 +65,7 @@ func getSteps(ctx context.Context, conf actionConfig) error {
 
 	jobs, _, err := client.Actions.ListWorkflowJobs(ctx, conf.owner, conf.repo, id, &github.ListWorkflowJobsOptions{})
 	if err != nil {
+		log.Printf("Cannot list workflow jobs: %v", err)
 		return err
 	}
 
@@ -74,6 +77,13 @@ func getSteps(ctx context.Context, conf actionConfig) error {
 		for _, step := range job.Steps {
 			_, stepSpan := tracer.Start(ctx, *step.Name, trace.WithTimestamp(step.GetStartedAt().Time))
 			if step.CompletedAt != nil {
+				log.Printf("step name %s: %v", *step.Name, step)
+				checkTime := step.CompletedAt.Time.Unix() - step.StartedAt.Time.Unix()
+				log.Printf("check time %d", checkTime)
+				if checkTime < 0 {
+					stepSpan.End(trace.WithTimestamp(step.StartedAt.Time))
+					continue
+				}
 				stepSpan.End(trace.WithTimestamp(step.CompletedAt.Time))
 			} else {
 				stepSpan.End()
@@ -152,7 +162,7 @@ func parseConfig() (actionConfig, error) {
 		resource.WithAttributes(attributes...),
 	)
 
-	insecure := false
+	insecure := true
 	conf := actionConfig{
 		workflow:         workflowName,
 		githubRepository: githubRepository,
@@ -186,6 +196,7 @@ func main() {
 		log.Printf("%v", err)
 	}
 
+	log.Println(conf)
 	err = getSteps(context.Background(), conf)
 	if err != nil {
 		log.Println(err)
