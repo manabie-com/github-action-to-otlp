@@ -16,4 +16,5 @@ runs:
   env:
     OTEL_EXPORTER_OTLP_ENDPOINT: ${{ inputs.endpoint }}
     OTEL_EXPORTER_OTLP_HEADERS: ${{ inputs.headers }}
+    OTEL_EXPORTER_TLS_DISABLED: ${{ inputs.tls_disabled }}
     GITHUB_TOKEN: ${{ inputs.repo-token }}
