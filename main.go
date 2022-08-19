@@ -77,9 +77,7 @@ func getSteps(ctx context.Context, conf actionConfig) error {
 		for _, step := range job.Steps {
 			_, stepSpan := tracer.Start(ctx, *step.Name, trace.WithTimestamp(step.GetStartedAt().Time))
 			if step.CompletedAt != nil {
-				log.Printf("step name %s: %v", *step.Name, step)
 				checkTime := step.CompletedAt.Time.Unix() - step.StartedAt.Time.Unix()
-				log.Printf("check time %d", checkTime)
 				if checkTime < 0 {
 					stepSpan.End(trace.WithTimestamp(step.StartedAt.Time))
 					continue
@@ -204,7 +202,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println(conf)
 	pipelineShutdown, err := pipelines.NewTracePipeline(conf.pipelineConfig)
 	defer pipelineShutdown()
 
@@ -212,7 +209,6 @@ func main() {
 		log.Printf("%v", err)
 	}
 
-	log.Println(conf)
 	err = getSteps(context.Background(), conf)
 	if err != nil {
 		log.Println(err)
