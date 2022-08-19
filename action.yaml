@@ -10,6 +10,9 @@ inputs:
   repo-token:
     description: 'The GITHUB_TOKEN secret'
     required: false
+  tls_disabled:
+    description: "Disable TLS validation"
+    required: false
 runs:
   using: "docker"
   image: "Dockerfile"
